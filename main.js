@@ -19,9 +19,36 @@ loadTechnologies(technos);
 
 
 if(navigator.serviceWorker){
+    console.log('hello il y a un service worker');
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
                             .catch(err => console.error);
     })
     
 }
+
+
+if(window.indexedDB){
+    var request = indexedDB.open("technosDB", 1);
+
+    request.onerror = function(e){
+        console.log(e)
+    }
+
+    request.onupgradeneeded = function(e){
+        var db = e.target.result;
+        var objectStore = db.createObjectStore("technos", {keyPath: "id"});
+        objectStore.createIndex("name", "name", {unique: true});
+        objectStore.transaction.oncomplete = function(e){
+            var store = db.transaction(["technos"], "readwrite").objectStore("technos");
+            for(var i = 0; technos.length; i++){
+                store.add(technos[i]);
+            }
+        }
+    }
+
+    request.onsuccess = function(e){
+        console.log("success");
+    }
+}
+
